@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Система публикации постов с валидацией и адаптивным дизайном">
+    <meta name="keywords" content="посты, блог, адаптивный дизайн">
+    <meta name="author" content="Ваше Имя">
+    <title>Post System | Адаптивная система публикации</title>
+    <style>
+      
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --danger-color: #f72585;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --gray-color: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+            background-color: var(--light-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Основные стили */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.5rem 0;
+            box-shadow: var(--box-shadow);
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: white;
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem 0;
+        }
+
+        .post-form {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .form-title {
+            margin-bottom: 1.5rem;
+            color: var(--dark-color);
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+        }
+
+        textarea.form-control {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #d1145a;
+        }
+
+        .posts-container {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .post {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            position: relative;
+        }
+
+        .post-title {
+            margin-bottom: 0.75rem;
+            color: var(--dark-color);
+            font-size: 1.25rem;
+        }
+
+        .post-content {
+            color: var(--dark-color);
+            margin-bottom: 1rem;
+        }
+
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--gray-color);
+        }
+
+        .post-actions {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--gray-color);
+        }
+
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: 2rem;
+        }
+
+       
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .is-invalid {
+            border-color: var(--danger-color) !important;
+        }
+
+        .is-invalid + .error-message {
+            display: block;
+        }
+
+        
+        @media (max-width: 768px) {
+            header .container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .post-form {
+                padding: 1.5rem;
+            }
+
+            .post-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .post-actions {
+                position: static;
+                justify-content: flex-end;
+                margin-bottom: 1rem;
+            }
+        }
+
+      
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+      
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .post {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="#" class="logo">PostSystem</a>
+            <nav>
+                <button id="theme-toggle" class="btn" aria-label="Переключить тему">🌓</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="post-form">
+            <h2 class="form-title">Создать новый пост</h2>
+            <form id="postForm" novalidate>
+                <div class="form-group">
+                    <label for="post-title">Заголовок</label>
+                    <input type="text" id="post-title" class="form-control" required minlength="5" maxlength="100">
+                    <div class="error-message" id="title-error">Заголовок должен содержать от 5 до 100 символов</div>
+                </div>
+                <div class="form-group">
+                    <label for="post-content">Содержание</label>
+                    <textarea id="post-content" class="form-control" required minlength="20" maxlength="1000"></textarea>
+                    <div class="error-message" id="content-error">Содержание должно содержать от 20 до 1000 символов</div>
+                </div>
+                <div class="form-group">
+                    <label for="post-author">Автор</label>
+                    <input type="text" id="post-author" class="form-control" maxlength="50">
+                </div>
+                <button type="submit" class="btn btn-primary">Опубликовать</button>
+            </form>
+        </section>
+
+        <section class="posts-container" id="posts-container">
+          
+            <div class="empty-state">Пока нет постов. Будьте первым!</div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2023 PostSystem. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+           
+            const postForm = document.getElementById('postForm');
+            const titleInput = document.getElementById('post-title');
+            const contentInput = document.getElementById('post-content');
+            const authorInput = document.getElementById('post-author');
+            const postsContainer = document.getElementById('posts-container');
+            const themeToggle = document.getElementById('theme-toggle');
+           
+            let posts = JSON.parse(localStorage.getItem('posts')) || [];
+            
+           
+            renderPosts();
+          
+            postForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (validateForm()) {
+                    const newPost = {
+                        id: Date.now(),
+                        title: titleInput.value.trim(),
+                        content: contentInput.value.trim(),
+                        author: authorInput.value.trim() || 'Аноним',
+                        date: new Date().toLocaleDateString('ru-RU', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+                    };
+                    posts.unshift(newPost);
+                    localStorage.setItem('posts', JSON.stringify(posts));
+                    postForm.reset();
+                    renderPosts();
+                }
+            });
+            function validateForm() {
+                let isValid = true;
+                if (titleInput.value.trim().length < 5 || titleInput.value.trim().length > 100) {
+                    titleInput.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    titleInput.classList.remove('is-invalid');
+                }
+              
+                if (contentInput.value.trim().length < 20 || contentInput.value.trim().length > 1000) {
+                    contentInput.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    contentInput.classList.remove('is-invalid');
+                }
+                
+                return isValid;
+            }
+            function renderPosts() {
+                if (posts.length === 0) {
+                    postsContainer.innerHTML = '<div class="empty-state">Пока нет постов. Будьте первым!</div>';
+                    return;
+                }
+                
+                postsContainer.innerHTML = '';
+                
+                posts.forEach(post => {
+                    const postElement = document.createElement('article');
+                    postElement.className = 'post';
+                    postElement.innerHTML = `
+                        <div class="post-actions">
+                            <button class="btn btn-danger" data-id="${post.id}">Удалить</button>
+                        </div>
+                        <h3 class="post-title">${escapeHtml(post.title)}</h3>
+                        <p class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</p>
+                        <div class="post-meta">
+                            <span>Автор: ${escapeHtml(post.author)}</span>
+                            <span>Дата: ${post.date}</span>
+                        </div>
+                    `;
+                    postsContainer.appendChild(postElement);
+                });
+                document.querySelectorAll('.btn-danger').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const postId = parseInt(this.getAttribute('data-id'));
+                        deletePost(postId);
+                    });
+                });
+            }
+            function deletePost(postId) {
+                posts = posts.filter(post => post.id !== postId);
+                localStorage.setItem('posts', JSON.stringify(posts));
+                renderPosts();
+            }
+            function escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-theme');
+                const isDark = document.body.classList.contains('dark-theme');
+                localStorage.setItem('darkTheme', isDark);
+            });
+            if (localStorage.getItem('darkTheme') === 'true') {
+                document.body.classList.add('dark-theme');
+            }
+            const style = document.createElement('style');
+            style.textContent = `
+                .dark-theme {
+                    --light-color: #121212;
+                    --dark-color: #f8f9fa;
+                    --gray-color: #adb5bd;
+                    --box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                }
+                .dark-theme .post-form,
+                .dark-theme .post {
+                    background-color: #1e1e1e;
+                }
+                .dark-theme .form-control {
+                    background-color: #2d2d2d;
+                    border-color: #3d3d3d;
+                    color: #f8f9fa;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>
