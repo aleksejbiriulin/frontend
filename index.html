@@ -1,14 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Система публикации постов с валидацией и адаптивным дизайном">
-    <meta name="keywords" content="посты, блог, адаптивный дизайн">
-    <meta name="author" content="Ваше Имя">
-    <title>Post System | Адаптивная система публикации</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Post System</title>
     <style>
-      
         :root {
             --primary-color: #4361ee;
             --secondary-color: #3f37c9;
@@ -21,409 +17,481 @@
             --box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             --transition: all 0.3s ease;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            line-height: 1.6;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             color: var(--dark-color);
-            background-color: var(--light-color);
+            background: var(--light-color);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
-
-        /* Основные стили */
         .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
+            width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px;
         }
-
         header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 1.5rem 0;
+            background: var(--primary-color); color: white; padding: 1.5rem 0;
             box-shadow: var(--box-shadow);
         }
-
-        header .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        header.fixed {
+            position: fixed; top: 0; width: 100%; z-index: 1000;
         }
-
         .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-decoration: none;
-            color: white;
+            text-decoration: none; color: white; font-size: 1.5rem; font-weight: bold;
+        }
+        main { flex: 1; padding: 2rem 0; }
+
+        /* Галерея */
+        .gallery-grid {
+            display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
+        .gallery-item {
+            cursor: pointer; object-fit: cover; height: 150px; border-radius: 8px;
         }
 
-        main {
-            flex: 1;
-            padding: 2rem 0;
+        /* Попап */
+        .popup {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); justify-content: center; align-items: center;
+            display: none; z-index: 1000;
         }
-
-        .post-form {
-            background: white;
-            padding: 2rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            margin-bottom: 2rem;
+        .popup img {
+            max-width: 90%; max-height: 80%; transition: transform 0.3s ease;
         }
-
-        .form-title {
-            margin-bottom: 1.5rem;
-            color: var(--dark-color);
+        .popup-close {
+            position: absolute; top: 10px; right: 10px; font-size: 2rem;
+            background: none; border: none; color: white; cursor: pointer;
         }
-
-        .form-group {
-            margin-bottom: 1.25rem;
+        .popup-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            font-size: 2rem; background: rgba(255,255,255,0.3); border: none;
+            padding: 0.5rem; border-radius: 50%; cursor: pointer;
         }
+        .popup-prev { left: 20px; }
+        .popup-next { right: 20px; }
+        .popup-hide-arrow { visibility: hidden; }
 
+        /* Форма */
+        .popup-inner {
+            background: white; padding: 2rem; border-radius: var(--border-radius);
+            max-width: 600px; width: 100%; animation: fadeIn 0.3s ease-out;
+        }
         .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+            display: block; margin-bottom: 0.5rem; font-weight: 600;
         }
-
         .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ced4da;
-            border-radius: var(--border-radius);
-            font-size: 1rem;
-            transition: var(--transition);
+            width: 100%; padding: 0.75rem; border: 1px solid #ced4da;
+            border-radius: var(--border-radius); font-size: 1rem;
         }
-
-        .form-control:focus {
-            border-color: var(--accent-color);
-            outline: none;
-            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
-        }
-
-        textarea.form-control {
-            min-height: 150px;
-            resize: vertical;
-        }
-
         .btn {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: var(--border-radius);
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: var(--transition);
-            text-align: center;
+            display: inline-block; padding: 0.75rem 1.5rem; border: none;
+            border-radius: var(--border-radius); font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: var(--transition);
         }
-
         .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
+            background-color: var(--primary-color); color: white;
         }
 
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
+        /* Таймер */
+        .countdown {
+            margin-top: 2rem; text-align: center;
         }
 
-        .btn-danger {
-            background-color: var(--danger-color);
-            color: white;
+        /* SVG анимация */
+        #animated-svg {
+            position: fixed; bottom: 20px; right: 20px;
         }
 
-        .btn-danger:hover {
-            background-color: #d1145a;
-        }
-
-        .posts-container {
-            display: grid;
-            gap: 1.5rem;
-        }
-
-        .post {
-            background: white;
-            padding: 1.5rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            position: relative;
-        }
-
-        .post-title {
-            margin-bottom: 0.75rem;
-            color: var(--dark-color);
-            font-size: 1.25rem;
-        }
-
-        .post-content {
-            color: var(--dark-color);
-            margin-bottom: 1rem;
-        }
-
-        .post-meta {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.875rem;
-            color: var(--gray-color);
-        }
-
-        .post-actions {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 2rem;
-            color: var(--gray-color);
-        }
-
-        footer {
-            background-color: var(--dark-color);
-            color: white;
-            text-align: center;
-            padding: 1.5rem 0;
-            margin-top: 2rem;
-        }
-
-       
-        .error-message {
-            color: var(--danger-color);
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-            display: none;
-        }
-
-        .is-invalid {
-            border-color: var(--danger-color) !important;
-        }
-
-        .is-invalid + .error-message {
-            display: block;
-        }
-
-        
-        @media (max-width: 768px) {
-            header .container {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .post-form {
-                padding: 1.5rem;
-            }
-
-            .post-meta {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            .post-actions {
-                position: static;
-                justify-content: flex-end;
-                margin-bottom: 1rem;
-            }
-        }
-
-      
-        img {
-            max-width: 100%;
-            height: auto;
-        }
-
-      
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        .post {
-            animation: fadeIn 0.3s ease-out;
-        }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <a href="#" class="logo">PostSystem</a>
-            <nav>
-                <button id="theme-toggle" class="btn" aria-label="Переключить тему">🌓</button>
-            </nav>
+
+<!-- Header -->
+<header id="main-header">
+    <div class="container">
+        <a href="#" class="logo">PostSystem</a>
+        <button id="theme-toggle" aria-label="Переключить тему">🌓</button>
+    </div>
+</header>
+
+<!-- Main -->
+<main class="container">
+    <!-- Gallery -->
+    <section class="gallery">
+        <h2>Галерея</h2>
+        <div class="gallery-grid">
+            <img src="https://via.placeholder.com/300x200?text=1 " alt="Фото 1" class="gallery-item">
+            <img src="https://via.placeholder.com/300x200?text=2 " alt="Фото 2" class="gallery-item">
+            <img src="https://via.placeholder.com/300x200?text=3 " alt="Фото 3" class="gallery-item">
         </div>
-    </header>
+    </section>
 
-    <main class="container">
-        <section class="post-form">
-            <h2 class="form-title">Создать новый пост</h2>
-            <form id="postForm" novalidate>
-                <div class="form-group">
-                    <label for="post-title">Заголовок</label>
-                    <input type="text" id="post-title" class="form-control" required minlength="5" maxlength="100">
-                    <div class="error-message" id="title-error">Заголовок должен содержать от 5 до 100 символов</div>
-                </div>
-                <div class="form-group">
-                    <label for="post-content">Содержание</label>
-                    <textarea id="post-content" class="form-control" required minlength="20" maxlength="1000"></textarea>
-                    <div class="error-message" id="content-error">Содержание должно содержать от 20 до 1000 символов</div>
-                </div>
-                <div class="form-group">
-                    <label for="post-author">Автор</label>
-                    <input type="text" id="post-author" class="form-control" maxlength="50">
-                </div>
-                <button type="submit" class="btn btn-primary">Опубликовать</button>
-            </form>
-        </section>
+    <!-- Feedback Form Button -->
+    <button id="feedback-btn" class="btn btn-primary">Связаться</button>
 
-        <div class="posts-container" id="posts-container">
-          
-            <div class="empty-state">Пока нет постов. Будьте первым!</div>
-        </div>
-    </main>
+    <!-- Countdown -->
+    <section class="countdown">
+        <h2>До получения диплома МФТИ осталось:</h2>
+        <div id="countdown" style="font-size: 1.5rem;"></div>
+    </section>
 
-    <footer>
-        <div class="container">
-            <p>© 2023 PostSystem. Все права защищены.</p>
-        </div>
-    </footer>
+    <!-- Post form + Posts -->
+    <section class="post-form">
+        <h2 class="form-title">Создать новый пост</h2>
+        <form id="postForm" novalidate>
+            <div class="form-group">
+                <label for="post-title">Заголовок</label>
+                <input type="text" id="post-title" class="form-control" required minlength="5" maxlength="100">
+                <div class="error-message" id="title-error">Заголовок должен содержать от 5 до 100 символов</div>
+            </div>
+            <div class="form-group">
+                <label for="post-content">Содержание</label>
+                <textarea id="post-content" class="form-control" required minlength="20" maxlength="1000"></textarea>
+                <div class="error-message" id="content-error">Содержание должно содержать от 20 до 1000 символов</div>
+            </div>
+            <div class="form-group">
+                <label for="post-author">Автор</label>
+                <input type="text" id="post-author" class="form-control" maxlength="50">
+            </div>
+            <button type="submit" class="btn btn-primary">Опубликовать</button>
+        </form>
+    </section>
+    <div class="posts-container" id="posts-container">
+        <div class="empty-state">Пока нет постов. Будьте первым!</div>
+    </div>
+</main>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-           
-            const postForm = document.getElementById('postForm');
-            const titleInput = document.getElementById('post-title');
-            const contentInput = document.getElementById('post-content');
-            const authorInput = document.getElementById('post-author');
-            const postsContainer = document.getElementById('posts-container');
-            const themeToggle = document.getElementById('theme-toggle');
-           
-            let posts = JSON.parse(localStorage.getItem('posts')) || [];
-            
-           
-            renderPosts();
-          
-            postForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                if (validateForm()) {
-                    const newPost = {
-                        id: Date.now(),
-                        title: titleInput.value.trim(),
-                        content: contentInput.value.trim(),
-                        author: authorInput.value.trim() || 'Аноним',
-                        date: new Date().toLocaleDateString('ru-RU', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        })
-                    };
-                    posts.unshift(newPost);
-                    localStorage.setItem('posts', JSON.stringify(posts));
-                    postForm.reset();
-                    renderPosts();
-                }
-            });
-            function validateForm() {
-                let isValid = true;
-                if (titleInput.value.trim().length < 5 || titleInput.value.trim().length > 100) {
-                    titleInput.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    titleInput.classList.remove('is-invalid');
-                }
-              
-                if (contentInput.value.trim().length < 20 || contentInput.value.trim().length > 1000) {
-                    contentInput.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    contentInput.classList.remove('is-invalid');
-                }
-                
-                return isValid;
-            }
-            function renderPosts() {
-                if (posts.length === 0) {
-                    postsContainer.innerHTML = '<div class="empty-state">Пока нет постов. Будьте первым!</div>';
-                    return;
-                }
-                
-                postsContainer.innerHTML = '';
-                
-                posts.forEach(post => {
-                    const postElement = document.createElement('article');
-                    postElement.className = 'post';
-                    postElement.innerHTML = `
-                        <div class="post-actions">
-                            <button class="btn btn-danger" data-id="${post.id}">Удалить</button>
-                        </div>
-                        <h3 class="post-title">${escapeHtml(post.title)}</h3>
-                        <p class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</p>
-                        <div class="post-meta">
-                            <span>Автор: ${escapeHtml(post.author)}</span>
-                            <span>Дата: ${post.date}</span>
-                        </div>
-                    `;
-                    postsContainer.appendChild(postElement);
-                });
-                document.querySelectorAll('.btn-danger').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const postId = parseInt(this.getAttribute('data-id'));
-                        deletePost(postId);
-                    });
-                });
-            }
-            function deletePost(postId) {
-                posts = posts.filter(post => post.id !== postId);
-                localStorage.setItem('posts', JSON.stringify(posts));
-                renderPosts();
-            }
-            function escapeHtml(unsafe) {
-                return unsafe
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
-            }
-            themeToggle.addEventListener('click', function() {
-                document.body.classList.toggle('dark-theme');
-                const isDark = document.body.classList.contains('dark-theme');
-                localStorage.setItem('darkTheme', isDark);
-            });
-            if (localStorage.getItem('darkTheme') === 'true') {
-                document.body.classList.add('dark-theme');
-            }
-            const style = document.createElement('style');
-            style.textContent = `
-                .dark-theme {
-                    --light-color: #121212;
-                    --dark-color: #f8f9fa;
-                    --gray-color: #adb5bd;
-                    --box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-                }
-                .dark-theme .post-form,
-                .dark-theme .post {
-                    background-color: #1e1e1e;
-                }
-                .dark-theme .form-control {
-                    background-color: #2d2d2d;
-                    border-color: #3d3d3d;
-                    color: #f8f9fa;
-                }
-            `;
-            document.head.appendChild(style);
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <p>© 2023 PostSystem. Все права защищены.</p>
+    </div>
+</footer>
+
+<!-- Popups -->
+<div class="popup" id="image-popup">
+    <button class="popup-close" id="popup-close">&times;</button>
+    <button class="popup-arrow popup-prev" id="popup-prev">&#8592;</button>
+    <img src="" alt="Увеличенное фото" id="popup-image">
+    <button class="popup-arrow popup-next" id="popup-next">&#8594;</button>
+</div>
+
+<div class="popup" id="feedback-popup">
+    <div class="popup-inner">
+        <button class="popup-close" id="feedback-close">&times;</button>
+        <form id="feedback-form">
+            <h3>Обратная связь</h3>
+            <div class="form-group">
+                <label for="name">Имя</label>
+                <input type="text" id="name" class="form-control" required />
+                <div class="error-message" id="name-error">Введите имя</div>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="text" id="email" class="form-control" required />
+                <div class="error-message" id="email-error">Неверный email</div>
+            </div>
+            <div class="form-group">
+                <label for="phone">Телефон</label>
+                <input type="text" id="phone" class="form-control" required />
+                <div class="error-message" id="phone-error">Неверный телефон</div>
+            </div>
+            <div class="form-group">
+                <label for="message">Сообщение (на русском)</label>
+                <textarea id="message" class="form-control" required></textarea>
+                <div class="error-message" id="message-error">Сообщение должно быть на русском</div>
+            </div>
+            <button type="submit" id="send-btn" class="btn btn-primary">Отправить</button>
+        </form>
+    </div>
+</div>
+
+<div class="popup" id="timer-popup">
+    <div class="popup-inner">
+        <button id="timer-popup-close" class="popup-close">&times;</button>
+        <p>Привет! Мы рады вас видеть!</p>
+    </div>
+</div>
+
+<svg id="animated-svg" viewBox="0 0 100 100" width="100" height="100">
+    <circle cx="50" cy="50" r="40" fill="var(--primary-color)" />
+</svg>
+
+<script>
+// ==== Scroll Fixed Header ====
+window.addEventListener('scroll', () => {
+    const header = document.getElementById('main-header');
+    if (window.scrollY > window.innerHeight) {
+        header.classList.add('fixed');
+    } else {
+        header.classList.remove('fixed');
+    }
+});
+
+// ==== Gallery Popup ====
+const galleryItems = document.querySelectorAll('.gallery-item');
+const imagePopup = document.getElementById('image-popup');
+const popupImage = document.getElementById('popup-image');
+const popupClose = document.getElementById('popup-close');
+const popupPrev = document.getElementById('popup-prev');
+const popupNext = document.getElementById('popup-next');
+
+let currentGalleryIndex = 0;
+
+galleryItems.forEach((img, index) => {
+    img.addEventListener('click', () => {
+        currentGalleryIndex = index;
+        updatePopupImage();
+        imagePopup.style.display = 'flex';
+    });
+});
+
+function updatePopupImage() {
+    popupImage.src = galleryItems[currentGalleryIndex].src;
+    popupPrev.classList.toggle('popup-hide-arrow', currentGalleryIndex === 0);
+    popupNext.classList.toggle('popup-hide-arrow', currentGalleryIndex === galleryItems.length - 1);
+}
+
+popupClose.addEventListener('click', () => {
+    imagePopup.style.display = 'none';
+});
+popupPrev.addEventListener('click', () => {
+    if (currentGalleryIndex > 0) {
+        currentGalleryIndex--;
+        updatePopupImage();
+    }
+});
+popupNext.addEventListener('click', () => {
+    if (currentGalleryIndex < galleryItems.length - 1) {
+        currentGalleryIndex++;
+        updatePopupImage();
+    }
+});
+
+// ==== Feedback Form ====
+document.getElementById('feedback-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const message = document.getElementById('message').value.trim();
+
+    let valid = true;
+
+    function setError(id) {
+        document.getElementById(id).classList.add('is-invalid');
+        document.getElementById(id + '-error').style.display = 'block';
+    }
+    function clearError(id) {
+        document.getElementById(id).classList.remove('is-invalid');
+        document.getElementById(id + '-error').style.display = 'none';
+    }
+
+    if (!name) {
+        setError('name'); valid = false;
+    } else clearError('name');
+
+    if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email)) {
+        setError('email'); valid = false;
+    } else clearError('email');
+
+    if (!/^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/.test(phone)) {
+        setError('phone'); valid = false;
+    } else clearError('phone');
+
+    if (!/^[\u0400-\u04FF\s.,!?]+$/.test(message)) {
+        setError('message'); valid = false;
+    } else clearError('message');
+
+    if (!valid) return;
+
+    const sendBtn = document.getElementById('send-btn');
+    sendBtn.textContent = 'Отправляем...'; sendBtn.disabled = true;
+    sendBtn.classList.remove('btn-primary'); sendBtn.classList.add('btn-danger');
+
+    try {
+        const response = await fetch('https://example.com/api/send ', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ name, email, phone, message })
         });
-    </script>
+
+        if (response.ok) {
+            sendBtn.textContent = 'Успешно отправлено!';
+            sendBtn.style.cursor = 'default';
+        } else throw new Error('Ошибка отправки');
+    } catch (err) {
+        alert('Ошибка отправки сообщения');
+        sendBtn.textContent = 'Отправить'; sendBtn.disabled = false;
+        sendBtn.classList.add('btn-primary'); sendBtn.classList.remove('btn-danger');
+    }
+});
+
+// ==== Timer Popup ====
+let timerPopupShown = localStorage.getItem('timerPopupShown') === 'true';
+if (!timerPopupShown) {
+    setTimeout(() => {
+        document.getElementById('timer-popup').style.display = 'flex';
+        timerPopupShown = true;
+        localStorage.setItem('timerPopupShown', 'true');
+    }, 30000);
+}
+document.getElementById('timer-popup-close').addEventListener('click', () => {
+    document.getElementById('timer-popup').style.display = 'none';
+});
+
+// ==== Countdown ====
+function updateCountdown() {
+    const targetDate = new Date("2026-06-30T00:00:00");
+    const now = new Date(); const diff = targetDate - now;
+    if (diff <= 0) {
+        document.getElementById('countdown').textContent = "Поздравляем!";
+        return;
+    }
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+    document.getElementById('countdown').textContent =
+        `${days} дн. ${hours} ч. ${minutes} мин. ${seconds} сек.`;
+}
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
+// ==== SVG Animation ====
+const svg = document.getElementById('animated-svg');
+document.addEventListener('mousemove', (e) => {
+    const x = e.clientX / window.innerWidth;
+    const y = e.clientY / window.innerHeight;
+    const cx = 50 + x * 20 - 10;
+    const cy = 50 + y * 20 - 10;
+    svg.querySelector('circle').setAttribute('cx', cx);
+    svg.querySelector('circle').setAttribute('cy', cy);
+});
+
+// ==== Theme Toggle ====
+const themeToggle = document.getElementById('theme-toggle');
+themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-theme');
+    const isDark = document.body.classList.contains('dark-theme');
+    localStorage.setItem('darkTheme', isDark);
+});
+if (localStorage.getItem('darkTheme') === 'true') {
+    document.body.classList.add('dark-theme');
+}
+const darkStyle = document.createElement('style');
+darkStyle.textContent = `
+.dark-theme {
+    --light-color: #121212; --dark-color: #f8f9fa; --gray-color: #adb5bd;
+    --box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.dark-theme .post-form,
+.dark-theme .post {
+    background-color: #1e1e1e;
+}
+.dark-theme .form-control {
+    background-color: #2d2d2d; border-color: #3d3d3d; color: #f8f9fa;
+}`;
+document.head.appendChild(darkStyle);
+
+// ==== Feedback Popup Toggle ====
+document.getElementById('feedback-btn').addEventListener('click', () => {
+    document.getElementById('feedback-popup').style.display = 'flex';
+});
+document.getElementById('feedback-close').addEventListener('click', () => {
+    document.getElementById('feedback-popup').style.display = 'none';
+});
+
+// ==== Post System ====
+document.addEventListener('DOMContentLoaded', function() {
+    const postForm = document.getElementById('postForm');
+    const titleInput = document.getElementById('post-title');
+    const contentInput = document.getElementById('post-content');
+    const authorInput = document.getElementById('post-author');
+    const postsContainer = document.getElementById('posts-container');
+    let posts = JSON.parse(localStorage.getItem('posts')) || [];
+
+    renderPosts();
+
+    postForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (validateForm()) {
+            const newPost = {
+                id: Date.now(),
+                title: titleInput.value.trim(),
+                content: contentInput.value.trim(),
+                author: authorInput.value.trim() || 'Аноним',
+                date: new Date().toLocaleDateString('ru-RU', {
+                    year: 'numeric', month: 'long', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                })
+            };
+            posts.unshift(newPost);
+            localStorage.setItem('posts', JSON.stringify(posts));
+            postForm.reset();
+            renderPosts();
+        }
+    });
+
+    function validateForm() {
+        let isValid = true;
+        if (titleInput.value.trim().length < 5 || titleInput.value.trim().length > 100) {
+            titleInput.classList.add('is-invalid'); isValid = false;
+        } else titleInput.classList.remove('is-invalid');
+
+        if (contentInput.value.trim().length < 20 || contentInput.value.trim().length > 1000) {
+            contentInput.classList.add('is-invalid'); isValid = false;
+        } else contentInput.classList.remove('is-invalid');
+
+        return isValid;
+    }
+
+    function renderPosts() {
+        if (posts.length === 0) {
+            postsContainer.innerHTML = '<div class="empty-state">Пока нет постов. Будьте первым!</div>';
+            return;
+        }
+        postsContainer.innerHTML = '';
+        posts.forEach(post => {
+            const postElement = document.createElement('article');
+            postElement.className = 'post';
+            postElement.innerHTML = `
+                <div class="post-actions">
+                    <button class="btn btn-danger" data-id="${post.id}">Удалить</button>
+                </div>
+                <h3 class="post-title">${escapeHtml(post.title)}</h3>
+                <p class="post-content">${escapeHtml(post.content).replace(/\n/g, '<br>')}</p>
+                <div class="post-meta">
+                    <span>Автор: ${escapeHtml(post.author)}</span>
+                    <span>Дата: ${post.date}</span>
+                </div>
+            `;
+            postsContainer.appendChild(postElement);
+        });
+        document.querySelectorAll('.btn-danger').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const postId = parseInt(this.getAttribute('data-id'));
+                deletePost(postId);
+            });
+        });
+    }
+
+    function deletePost(postId) {
+        posts = posts.filter(post => post.id !== postId);
+        localStorage.setItem('posts', JSON.stringify(posts));
+        renderPosts();
+    }
+
+    function escapeHtml(unsafe) {
+        return unsafe.replace(/&/g, "&amp;").replace(/</g, "<")
+                     .replace(/>/g, ">").replace(/"/g, "&quot;")
+                     .replace(/'/g, "&#039;");
+    }
+});
+</script>
 </body>
 </html>
