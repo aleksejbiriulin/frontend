@@ -93,8 +93,7 @@
             transition: var(--transition);
         }
 
-        input:focus,
-        textarea:focus {
+        input:focus, textarea:focus {
             outline: none;
             border-color: var(--accent-color);
             box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
@@ -267,6 +266,7 @@
             color: var(--gray-color);
         }
 
+        /* Ошибки валидации */
         .error-message {
             color: var(--danger-color);
             font-size: 0.875rem;
@@ -319,7 +319,7 @@
 
     <!-- Posts -->
     <div class="posts-container" id="posts-container">
-        <div class="empty-state">Пока нет постов. Создайте первый!</div>
+        <div class="empty-state">Нет постов. Создайте первый!</div>
     </div>
 
     <!-- Gallery -->
@@ -451,6 +451,7 @@
         svg.querySelector('circle').setAttribute('cy', cy);
     });
 
+    // ==== Theme Toggle ====
     const themeToggle = document.getElementById('theme-toggle');
     themeToggle.addEventListener('click', () => {
         document.body.classList.toggle('dark-theme');
@@ -468,7 +469,6 @@
         const contentInput = document.getElementById('post-content');
         const imageInput = document.getElementById('post-image');
         const postsContainer = document.getElementById('posts-container');
-        const emptyState = '<div class="empty-state">Нет постов. Создайте первый!</div>';
         let posts = JSON.parse(localStorage.getItem('posts')) || [];
 
         renderPosts();
@@ -533,7 +533,7 @@
 
         function renderPosts() {
             if (posts.length === 0) {
-                postsContainer.innerHTML = emptyState;
+                postsContainer.innerHTML = '<div class="empty-state">Нет постов. Создайте первый!</div>';
                 return;
             }
 
@@ -581,7 +581,7 @@
                 .replace(/'/g, "&#039;");
         }
 
-        //Message after 30 sec
+        // ==== Message after 30 sec ====
         let timerPopupShown = localStorage.getItem('timerPopupShown') === 'true';
         if (!timerPopupShown) {
             setTimeout(() => {
@@ -599,20 +599,6 @@
                     localStorage.setItem('timerPopupShown', 'true');
                 });
             }, 30000);
-        }
-
-    
-        const feedbackBtn = document.getElementById('feedback-btn');
-        const feedbackPopup = document.getElementById('feedback-popup');
-        const feedbackClose = document.getElementById('feedback-close');
-
-        if (feedbackBtn && feedbackPopup && feedbackClose) {
-            feedbackBtn.addEventListener('click', () => {
-                feedbackPopup.style.display = 'flex';
-            });
-            feedbackClose.addEventListener('click', () => {
-                feedbackPopup.style.display = 'none';
-            });
         }
     });
 </script>
