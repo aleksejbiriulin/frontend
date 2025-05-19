@@ -419,17 +419,13 @@
         popupNext.style.visibility = currentGalleryIndex === galleryImages.length - 1 ? 'hidden' : 'visible';
     }
 
-    popupClose.addEventListener('click', () => {
-        imagePopup.style.display = 'none';
-    });
-
+    popupClose.addEventListener('click', () => imagePopup.style.display = 'none');
     popupPrev.addEventListener('click', () => {
         if (currentGalleryIndex > 0) {
             currentGalleryIndex--;
             updatePopupImage();
         }
     });
-
     popupNext.addEventListener('click', () => {
         if (currentGalleryIndex < galleryImages.length - 1) {
             currentGalleryIndex++;
@@ -492,23 +488,24 @@
         let posts = JSON.parse(localStorage.getItem('posts')) || [];
 
         renderPosts();
+        updateGallery();
 
         postForm.addEventListener('submit', function (e) {
             e.preventDefault();
             if (validateForm()) {
-                const reader = new FileReader();
-                const file = imageInput.files[0];
-                let imageUrl = '';
+                const files = Array.from(imageInput.files).slice(0, 2); // до 2 файлов
+                const readerPromises = files.map(file => {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+                });
 
-                if (file) {
-                    reader.readAsDataURL(file);
-                    reader.onload = function () {
-                        imageUrl = reader.result;
-                        createAndRenderPost(imageUrl);
-                    };
-                } else {
-                    createAndRenderPost('');
-                }
+                Promise.all(readerPromises)
+                    .then(imageUrls => createAndRenderPost(imageUrls))
+                    .catch(() => alert('Ошибка чтения одного или нескольких файлов'));
             }
         });
 
@@ -516,6 +513,7 @@
             let isValid = true;
 
             if (titleInput.value.trim().length < 5 || titleInput.value.trim().length > 100) {
+                alert("Ошибка: Заголовок должен содержать от 5 до 100 символов.");
                 titleInput.classList.add('is-invalid');
                 isValid = false;
             } else {
@@ -523,6 +521,7 @@
             }
 
             if (contentInput.value.trim().length < 20 || contentInput.value.trim().length > 1000) {
+                alert("Ошибка: Содержание должно содержать от 20 до 1000 символов.");
                 contentInput.classList.add('is-invalid');
                 isValid = false;
             } else {
@@ -532,12 +531,12 @@
             return isValid;
         }
 
-        function createAndRenderPost(imageUrl) {
+        function createAndRenderPost(imageUrls = []) {
             const newPost = {
                 id: Date.now(),
                 title: titleInput.value.trim(),
                 content: contentInput.value.trim(),
-                image: imageUrl,
+                images: imageUrls,
                 date: new Date().toLocaleString('ru-RU')
             };
 
@@ -559,20 +558,24 @@
                 const postElement = document.createElement('article');
                 postElement.className = 'post';
 
+                // Вставляем все изображения поста
+                const imagesHtml = post.images
+                    .map(img => `<img src="${img}" alt="Фото поста">`)
+                    .join('');
+
                 postElement.innerHTML = `
-                    ${post.image ? `<img src="${post.image}" alt="Фото поста">` : ''}
+                    ${imagesHtml}
                     <div class="post-content">
-                        <h3 class="post-title">${post.title}</h3>
-                        <p>${post.content}</p>
+                        <h3 class="post-title">${escapeHtml(post.title)}</h3>
+                        <p>${escapeHtml(post.content).replace(/\n/g, '<br>')}</p>
                         <div class="post-meta">Дата: ${post.date}</div>
                         <button class="btn btn-danger" data-id="${post.id}">Удалить</button>
                     </div>
                 `;
-
                 postsContainer.appendChild(postElement);
             });
 
-            // Добавляем обработчики на кнопки удаления
+            // Добавляем обработчики удаления
             document.querySelectorAll('.btn-danger').forEach(btn => {
                 btn.addEventListener('click', function () {
                     const postId = parseInt(this.getAttribute('data-id'));
@@ -582,13 +585,43 @@
         }
 
         function deletePost(postId) {
-            posts = posts.filter(post => post.id !== postId);
+            posts = posts.filter(p => p.id !== postId);
             localStorage.setItem('posts', JSON.stringify(posts));
             renderPosts();
             updateGallery();
         }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "<")
+                .replace(/>/g, ">")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // ==== Message after 30 sec ====
+        let timerPopupShown = localStorage.getItem('timerPopupShown') === 'true';
+        if (!timerPopupShown) {
+            setTimeout(() => {
+                const msg = document.createElement('div');
+                msg.className = 'popup';
+                msg.style.display = 'flex';
+                msg.innerHTML = `
+                    <div class="popup-inner">
+                        <button class="popup-close" id="timer-popup-close">&times;</button>
+                        <p>Привет! Мы рады вас видеть!</p>
+                    </div>`;
+                document.body.appendChild(msg);
+                document.getElementById('timer-popup-close').addEventListener('click', () => {
+                    msg.style.display = 'none';
+                    localStorage.setItem('timerPopupShown', 'true');
+                });
+            }, 30000);
+        }
     });
 </script>
+
 
 </body>
 </html>
