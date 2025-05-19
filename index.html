@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>PostSystem | Мой красивый блог</title>
+    <title>PostSystem | Блог с несколькими фото</title>
     <style>
         :root {
             --primary-color: #4361ee;
@@ -135,12 +135,18 @@
             animation: fadeInUp 0.5s ease;
         }
 
-        .post img {
+        .post-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            padding: 1rem;
+        }
+
+        .post-image {
             width: 100%;
-            height: auto;
-            display: block;
-            border-top-left-radius: var(--border-radius);
-            border-top-right-radius: var(--border-radius);
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
         }
 
         .post-content {
@@ -172,7 +178,6 @@
             margin-top: 2rem;
         }
 
-        /* Gallery */
         .gallery {
             margin-top: 2rem;
         }
@@ -196,7 +201,6 @@
             transform: scale(1.05);
         }
 
-        /* Popup */
         .popup {
             position: fixed;
             top: 0;
@@ -232,14 +236,12 @@
         .popup-prev { left: 20px; }
         .popup-next { right: 20px; }
 
-        /* Countdown */
         .countdown {
             margin-top: 2rem;
             text-align: center;
             font-size: 1.5rem;
         }
 
-        /* SVG Animation */
         #animated-svg {
             position: fixed;
             bottom: 20px;
@@ -251,17 +253,11 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Dark Theme */
         .dark-theme {
             --light-color: #121212;
             --dark-color: #f8f9fa;
             --gray-color: #adb5bd;
             --box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-
-        .dark-theme body {
-            background: #121212;
-            color: #f8f9fa;
         }
 
         .dark-theme .post,
@@ -282,7 +278,6 @@
             color: var(--gray-color);
         }
 
-        /* Ошибки валидации */
         .error-message {
             color: var(--danger-color);
             font-size: 0.875rem;
@@ -300,66 +295,56 @@
 </head>
 <body>
 
-<!-- Header -->
 <header>
     <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-        <a href="#" class="logo">My Blog</a>
+        <a href="#" class="logo">МультиФото Блог</a>
         <button id="theme-toggle" aria-label="Переключить тему">🌓</button>
     </div>
 </header>
 
-<!-- Main -->
 <main class="container">
-
-    <!-- Post Form -->
     <section class="post-form">
         <h2>Создать новый пост</h2>
         <form id="postForm" novalidate>
             <div class="form-group">
                 <label for="post-title">Заголовок</label>
-                <input type="text" id="post-title" class="form-control" required minlength="5" maxlength="100">
+                <input type="text" id="post-title" required minlength="5" maxlength="100">
                 <div class="error-message" id="title-error">Заголовок должен содержать от 5 до 100 символов</div>
             </div>
             <div class="form-group">
                 <label for="post-content">Текст</label>
-                <textarea id="post-content" class="form-control" required minlength="20" maxlength="1000"></textarea>
+                <textarea id="post-content" required minlength="20" maxlength="1000"></textarea>
                 <div class="error-message" id="content-error">Содержание должно содержать от 20 до 1000 символов</div>
             </div>
             <div class="form-group">
-                <label for="post-image">Изображение (необязательно)</label>
-                <input type="file" id="post-image" accept="image/*" />
+                <label for="post-image">Изображения (до 5 файлов)</label>
+                <input type="file" id="post-image" accept="image/*" multiple>
             </div>
             <button type="submit" class="btn btn-primary">Опубликовать</button>
         </form>
     </section>
 
-    <!-- Posts -->
     <div class="posts-container" id="posts-container">
         <div class="empty-state">Пока нет постов. Создайте первый!</div>
     </div>
 
-    <!-- Gallery -->
     <section class="gallery">
         <h2>Галерея</h2>
         <div class="gallery-grid" id="gallery-grid"></div>
     </section>
 
-    <!-- Countdown -->
     <section class="countdown">
-        <h2>До получения диплома осталось:</h2>
+        <h2>До Нового Года осталось:</h2>
         <div id="countdown">Загрузка...</div>
     </section>
-
 </main>
 
-<!-- Footer -->
 <footer>
     <div class="container">
-        <p>© 2023 My Blog. Все права защищены.</p>
+        <p>© 2023 МультиФото Блог. Все права защищены.</p>
     </div>
 </footer>
 
-<!-- Popups -->
 <div class="popup" id="image-popup">
     <img src="" alt="Увеличенное фото" id="popup-image">
     <button class="popup-close" id="popup-close">&times;</button>
@@ -372,118 +357,8 @@
 </svg>
 
 <script>
-    // ==== Scroll Fixed Header ====
-    window.addEventListener('scroll', () => {
-        const header = document.querySelector('header');
-        if (window.scrollY > 100) {
-            header.style.position = 'fixed';
-            header.style.top = '0';
-            header.style.width = '100%';
-            header.style.zIndex = '999';
-        } else {
-            header.style.position = 'relative';
-        }
-    });
-
-    // ==== Gallery Popup ====
-    const galleryGrid = document.getElementById('gallery-grid');
-    const imagePopup = document.getElementById('image-popup');
-    const popupImage = document.getElementById('popup-image');
-    const popupClose = document.getElementById('popup-close');
-    const popupPrev = document.getElementById('popup-prev');
-    const popupNext = document.getElementById('popup-next');
-
-    let currentGalleryIndex = 0;
-    let galleryImages = [];
-
-    function updateGallery() {
-        galleryImages = Array.from(document.querySelectorAll('.post img'));
-        galleryGrid.innerHTML = '';
-        galleryImages.forEach(img => {
-            const clone = img.cloneNode();
-            clone.classList.add('gallery-item');
-            clone.addEventListener('click', () => {
-                currentGalleryIndex = galleryImages.indexOf(img);
-                updatePopupImage();
-                imagePopup.style.display = 'flex';
-            });
-            galleryGrid.appendChild(clone);
-        });
-    }
-
-    function updatePopupImage() {
-        if (galleryImages[currentGalleryIndex]) {
-            popupImage.src = galleryImages[currentGalleryIndex].src;
-        }
-        popupPrev.style.visibility = currentGalleryIndex === 0 ? 'hidden' : 'visible';
-        popupNext.style.visibility = currentGalleryIndex === galleryImages.length - 1 ? 'hidden' : 'visible';
-    }
-
-    popupClose.addEventListener('click', () => {
-        imagePopup.style.display = 'none';
-    });
-
-    popupPrev.addEventListener('click', () => {
-        if (currentGalleryIndex > 0) {
-            currentGalleryIndex--;
-            updatePopupImage();
-        }
-    });
-
-    popupNext.addEventListener('click', () => {
-        if (currentGalleryIndex < galleryImages.length - 1) {
-            currentGalleryIndex++;
-            updatePopupImage();
-        }
-    });
-
-    // ==== Countdown ====
-    function updateCountdown() {
-        const targetDate = new Date("2026-06-30T00:00:00");
-        const now = new Date();
-        const diff = targetDate - now;
-
-        if (diff <= 0) {
-            document.getElementById('countdown').textContent = "🎉 Выпуск!";
-            return;
-        }
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / (1000 * 60)) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
-
-        document.getElementById('countdown').textContent =
-            `${days} дн. ${hours} ч. ${minutes} мин. ${seconds} сек.`;
-    }
-
-    setInterval(updateCountdown, 1000);
-    updateCountdown();
-
-    // ==== SVG Animation ====
-    const svg = document.getElementById('animated-svg');
-    document.addEventListener('mousemove', (e) => {
-        const x = e.clientX / window.innerWidth;
-        const y = e.clientY / window.innerHeight;
-        const cx = 50 + x * 20 - 10;
-        const cy = 50 + y * 20 - 10;
-        svg.querySelector('circle').setAttribute('cx', cx);
-        svg.querySelector('circle').setAttribute('cy', cy);
-    });
-
-    // ==== Theme Toggle ====
-    const themeToggle = document.getElementById('theme-toggle');
-    themeToggle.addEventListener('click', () => {
-        document.body.classList.toggle('dark-theme');
-        localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
-    });
-
-    if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark-theme');
-    }
-
-    // ==== Post System ====
     document.addEventListener('DOMContentLoaded', function () {
+        // Инициализация переменных
         const postForm = document.getElementById('postForm');
         const titleInput = document.getElementById('post-title');
         const contentInput = document.getElementById('post-content');
@@ -491,59 +366,53 @@
         const postsContainer = document.getElementById('posts-container');
         let posts = JSON.parse(localStorage.getItem('posts')) || [];
 
-        renderPosts();
-        updateGallery();
+        // Функции
+        function renderPosts() {
+            postsContainer.innerHTML = posts.length ? '' : '<div class="empty-state">Нет постов. Создайте первый!</div>';
+            
+            posts.forEach(post => {
+                const postElement = document.createElement('article');
+                postElement.className = 'post';
+                const images = post.images || (post.image ? [post.image] : []);
 
-        postForm.addEventListener('submit', function (e) {
-            e.preventDefault();
-            if (validateForm()) {
-                const file = imageInput.files[0];
-                if (!file) {
-                    createAndRenderPost('');
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function () {
-                    createAndRenderPost(reader.result);
-                };
-                reader.onerror = function () {
-                    alert('Ошибка чтения файла');
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+                postElement.innerHTML = `
+                    ${images.length ? `
+                        <div class="post-images">
+                            ${images.map(img => `
+                                <img src="${img}" class="post-image" alt="Фото поста">
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <div class="post-content">
+                        <h3 class="post-title">${escapeHtml(post.title)}</h3>
+                        <p>${escapeHtml(post.content).replace(/\n/g, '<br>')}</p>
+                        <div class="post-meta">${post.date}</div>
+                        <div class="post-actions">
+                            <button class="btn btn-danger" data-id="${post.id}">Удалить</button>
+                        </div>
+                    </div>
+                `;
 
-        function validateForm() {
-            let isValid = true;
+                postElement.querySelector('.btn-danger').addEventListener('click', () => {
+                    posts = posts.filter(p => p.id !== post.id);
+                    localStorage.setItem('posts', JSON.stringify(posts));
+                    renderPosts();
+                    updateGallery();
+                });
 
-            if (titleInput.value.trim().length < 5 || titleInput.value.trim().length > 100) {
-                alert("Ошибка: Заголовок должен содержать от 5 до 100 символов.");
-                titleInput.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                titleInput.classList.remove('is-invalid');
-            }
-
-            if (contentInput.value.trim().length < 20 || contentInput.value.trim().length > 1000) {
-                alert("Ошибка: Содержание должно содержать от 20 до 1000 символов.");
-                contentInput.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                contentInput.classList.remove('is-invalid');
-            }
-
-            return isValid;
+                postsContainer.appendChild(postElement);
+            });
         }
 
-        function createAndRenderPost(imageUrl) {
+        function createPost(images) {
             const newPost = {
                 id: Date.now(),
                 title: titleInput.value.trim(),
                 content: contentInput.value.trim(),
-                image: imageUrl,
+                images: images,
                 date: new Date().toLocaleString('ru-RU')
             };
-
+            
             posts.unshift(newPost);
             localStorage.setItem('posts', JSON.stringify(posts));
             postForm.reset();
@@ -551,48 +420,21 @@
             updateGallery();
         }
 
-        function renderPosts() {
-            if (posts.length === 0) {
-                postsContainer.innerHTML = '<div class="empty-state">Нет постов. Создайте первый!</div>';
-                return;
+        function validateForm() {
+            let isValid = true;
+            if (titleInput.value.trim().length < 5 || titleInput.value.trim().length > 100) {
+                titleInput.classList.add('is-invalid');
+                isValid = false;
             }
-
-            postsContainer.innerHTML = '';
-            posts.forEach(post => {
-                const postElement = document.createElement('article');
-                postElement.className = 'post';
-
-                postElement.innerHTML = `
-                    ${post.image ? `<img src="${post.image}" alt="Фото поста">` : ''}
-                    <div class="post-content">
-                        <h3 class="post-title">${escapeHtml(post.title)}</h3>
-                        <p>${escapeHtml(post.content).replace(/\n/g, '<br>')}</p>
-                        <div class="post-meta">Дата: ${post.date}</div>
-                        <div class="post-actions">
-                            <button class="btn btn-danger" data-id="${post.id}">Удалить</button>
-                        </div>
-                    </div>
-                `;
-                postsContainer.appendChild(postElement);
-            });
-
-            document.querySelectorAll('.btn-danger').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const postId = parseInt(this.getAttribute('data-id'));
-                    deletePost(postId);
-                });
-            });
+            if (contentInput.value.trim().length < 20 || contentInput.value.trim().length > 1000) {
+                contentInput.classList.add('is-invalid');
+                isValid = false;
+            }
+            return isValid;
         }
 
-        function deletePost(postId) {
-            posts = posts.filter(p => p.id !== postId);
-            localStorage.setItem('posts', JSON.stringify(posts));
-            renderPosts();
-            updateGallery();
-        }
-
-        function escapeHtml(unsafe) {
-            return unsafe
+        function escapeHtml(text) {
+            return text
                 .replace(/&/g, "&amp;")
                 .replace(/</g, "<")
                 .replace(/>/g, ">")
@@ -600,48 +442,98 @@
                 .replace(/'/g, "&#039;");
         }
 
-        // ==== Message after 30 sec ====
-        let timerPopupShown = localStorage.getItem('timerPopupShown') === 'true';
-        if (!timerPopupShown) {
-            setTimeout(() => {
-                const msg = document.createElement('div');
-                msg.className = 'popup';
-                msg.style.display = 'flex';
-                msg.innerHTML = `
-                    <div class="popup-inner">
-                        <button class="popup-close" id="timer-popup-close">&times;</button>
-                        <p>Привет! Мы рады вас видеть!</p>
-                    </div>`;
-                document.body.appendChild(msg);
-                document.getElementById('timer-popup-close').addEventListener('click', () => {
-                    msg.style.display = 'none';
-                    localStorage.setItem('timerPopupShown', 'true');
-                });
-            }, 30000);
+        // Обработчики событий
+        postForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!validateForm()) return;
+
+            const files = imageInput.files;
+            if (files.length > 5) {
+                alert('Максимум 5 фотографий!');
+                return;
+            }
+
+            if (files.length) {
+                Promise.all(Array.from(files).map(file => 
+                    new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    })
+                )).then(images => createPost(images))
+                .catch(() => alert('Ошибка загрузки фото'));
+            } else {
+                createPost([]);
+            }
+        });
+
+        // Галерея
+        let currentGalleryIndex = 0;
+        const galleryImages = [];
+        const imagePopup = document.getElementById('image-popup');
+        const popupImage = document.getElementById('popup-image');
+
+        function updateGallery() {
+            galleryImages.length = 0;
+            document.querySelectorAll('.post-image').forEach(img => galleryImages.push(img));
         }
 
-        // ==== Feedback Form ====
-        const feedbackBtn = document.getElementById('feedback-btn');
-        const feedbackPopup = document.getElementById('feedback-popup');
-        const feedbackClose = document.getElementById('feedback-close');
-        const feedbackForm = document.getElementById('feedback-form');
+        document.addEventListener('click', e => {
+            if (e.target.classList.contains('post-image')) {
+                currentGalleryIndex = galleryImages.indexOf(e.target);
+                popupImage.src = galleryImages[currentGalleryIndex].src;
+                imagePopup.style.display = 'flex';
+            }
+        });
 
-        if (feedbackBtn && feedbackPopup && feedbackClose) {
-            feedbackBtn.addEventListener('click', () => {
-                feedbackPopup.style.display = 'flex';
-            });
+        document.getElementById('popup-close').addEventListener('click', () => {
+            imagePopup.style.display = 'none';
+        });
 
-            feedbackClose.addEventListener('click', () => {
-                feedbackPopup.style.display = 'none';
-            });
+        document.getElementById('popup-prev').addEventListener('click', () => {
+            if (currentGalleryIndex > 0) {
+                popupImage.src = galleryImages[--currentGalleryIndex].src;
+            }
+        });
 
-            feedbackForm?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                alert("Сообщение отправлено!");
-                feedbackForm.reset();
-                feedbackPopup.style.display = 'none';
-            });
+        document.getElementById('popup-next').addEventListener('click', () => {
+            if (currentGalleryIndex < galleryImages.length - 1) {
+                popupImage.src = galleryImages[++currentGalleryIndex].src;
+            }
+        });
+
+        // Остальные функции
+        function updateCountdown() {
+            const targetDate = new Date("2024-01-01T00:00:00");
+            const diff = targetDate - new Date();
+            if (diff <= 0) {
+                document.getElementById('countdown').textContent = "🎉 С Новым Годом!";
+                return;
+            }
+            const days = Math.floor(diff / 86400000);
+            const hours = Math.floor((diff % 86400000) / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            document.getElementById('countdown').textContent = 
+                `${days}д ${hours}ч ${minutes}м ${seconds}с`;
         }
+
+        // Тема
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        });
+
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-theme');
+        }
+
+        // Инициализация
+        renderPosts();
+        updateGallery();
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
     });
 </script>
 </body>
